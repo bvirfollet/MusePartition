@@ -9,7 +9,7 @@ audioread>=3.0.0
 
 # Pitch Detection (CREPE)
 crepe>=0.0.16
-#tensorflow>=2.13.0,<2.16.0
+tensorflow #>=2.13.0,<2.16.0
 # Note: TensorFlow 2.13+ pour compatibilité CREPE
 
 # Music Notation
