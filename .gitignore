@@ -1,34 +1,145 @@
-# Gradle files
-.gradle/
+# MusePartition - .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Local configuration file (sdk path, etc)
-local.properties
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
 
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
-
-# IntelliJ
-*.iml
+# IDEs
+.vscode/
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
-# Keystore files
-*.jks
-*.keystore
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
 
-# Android Profiling
-*.hprof
+# ML Models & Data (IMPORTANT)
+data/models/*.h5
+data/models/*.pb
+data/models/*.ckpt
+data/models/*.pth
+*.pkl
+*.pickle
+
+# Keep model README but not models themselves
+!data/models/README.md
+
+# Audio Files (keep samples for tests)
+data/audio/*.wav
+data/audio/*.mp3
+data/audio/*.flac
+data/audio/*.ogg
+# Keep test samples
+!data/samples/*.wav
+!data/samples/*.mp3
+
+# Output Files
+output/*.pdf
+output/*.mid
+output/*.midi
+output/*.musicxml
+output/*.xml
+output/*.json
+output/*.png
+# Keep example outputs
+!output/examples/
+
+# Temporary Files
+*.tmp
+*.temp
+*.log
+*.bak
+
+# Configuration (keep example, not actual)
+config.json
+!config.example.json
+
+# Documentation Build
+docs/_build/
+docs/_static/
+docs/_templates/
+site/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project Specific
+SESSION_BACKUP_*.md
+*.draft.md
+
+# Large Audio/Video
+*.avi
+*.mov
+*.mp4
+*.mkv
+*.webm
+
+# TensorFlow / CREPE specific
+*.tfrecord
+*.tflite
+checkpoint
+model.ckpt.*
+events.out.tfevents.*
+
+# Cached pip packages
+*.whl
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
