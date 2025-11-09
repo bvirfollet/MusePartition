@@ -54,7 +54,8 @@ Input Audio File
 ┌──────────────────────────────────────────┐
 │  Module 2 : Pitch Detection              │
 │  - Détection fréquence fondamentale      │
-│  - Algorithme : CREPE ou pYIN            │
+│  - Algorithme : CREPE (model="medium")   │
+│  - Filtrage par confidence (threshold)   │
 │  - Sortie : (timestamp, frequency, conf) │
 └──────────┬───────────────────────────────┘
            ↓
@@ -83,6 +84,16 @@ Input Audio File
 └──────────────────────────────────────────┘
        ↓
 Output: PDF, MusicXML, MIDI
+
+┌─────────────────────────────────────────────────┐
+│  Module Utils (Support - transversal)           │
+│  ──────────────────────────────────────────────  │
+│  • DebugTracer : Logging structuré (.log/.json) │
+│  • IntermediateStorage : Sauvegarde étapes      │
+│  • Fonctions utilitaires (format, stats)        │
+│  ──────────────────────────────────────────────  │
+│  Utilisé par tous les modules pour debug/trace  │
+└─────────────────────────────────────────────────┘
 ```
 
 ### Stack Technologique (Phase 1)
@@ -131,6 +142,27 @@ class ScoreGenerator:
     def export_pdf(stream: music21.stream.Stream, output_path: str)
     def export_midi(stream: music21.stream.Stream, output_path: str)
 
+# Module Utils: utils.py (Support)
+class DebugTracer:
+    def __init__(output_dir: str = "output/debug", enabled: bool = True)
+    def log_step(step_name: str, metadata: Dict[str, Any]) -> None
+    def get_log_path() -> Optional[Path]
+
+class IntermediateStorage:
+    def __init__(output_dir: str = "output/intermediate")
+    def save_audio(audio: Any, sample_rate: int, filename: str) -> Path
+    def save_pitch_data(pitch_frames: List[PitchFrame], filename: str) -> Path
+    def save_notes(notes: List[Note], filename: str) -> Path
+    def save_quantized_notes(quantized_notes: List[QuantizedNote], bpm: float, filename: str) -> Path
+    def load_audio(filename: str) -> Dict[str, Any]
+    def load_pitch_data(filename: str) -> Dict[str, Any]
+    def list_saved_files() -> List[Path]
+
+# Fonctions utilitaires
+def format_duration(seconds: float) -> str  # "2m 34s"
+def format_frequency(frequency: float) -> str  # "440.0 Hz (A4)"
+def print_summary_stats(pitch_frames: List[PitchFrame]) -> None
+
 # Main Pipeline
 class TranscriptionPipeline:
     def __init__(config: dict)
@@ -147,14 +179,20 @@ class TranscriptionPipeline:
   - `tests/test_audio_processor.py`
   - Documentation API Module 1
 
-#### **SESSION 2 : Module 2 (Pitch Detection)**
-- Intégration CREPE
+#### **SESSION 2 : Module 2 (Pitch Detection) + Utils**
+- Intégration CREPE avec optimisations (model_capacity="medium", confidence filtering)
 - Benchmark précision sur enregistrements flûte
+- **Module Utils ajouté** :
+  - DebugTracer : Traçage et logging structuré
+  - IntermediateStorage : Sauvegarde résultats intermédiaires
+  - Fonctions utilitaires (format_duration, format_frequency, stats)
 - **Livrables** :
-  - `pitch_detector.py`
-  - `tests/test_pitch_detector.py`
-  - Dataset test (3 fichiers flûte)
-  - Documentation API Module 2
+  - `pitch_detector.py` (amélioré avec filtrage confidence)
+  - `utils.py` (nouveau module support)
+  - `tests/test_pitch_detector.py` (avec 5 benchmarks performance)
+  - `tests/test_utils.py` (25+ tests)
+  - Dataset test (3 fichiers flûte - optionnel)
+  - Documentation API Module 2 + Utils
 
 #### **SESSION 3 : Module 3 (Note Segmentation)**
 - Algorithme onset/offset detection

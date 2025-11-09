@@ -259,3 +259,61 @@ Le module `AudioProcessor` est :
 **Session complétée par** : Claude  
 **Validation requise** : Exécution tests quand packages disponibles  
 **Prochaine session** : Session 2 - Pitch Detection (CREPE)
+
+
+
+Session 2 : 2025-11-09 - Pitch DetectionDate: 2025-11-09Durée: 3hDéveloppeur: Gemini (AI)Objectifs Session[x] Intégrer CREPE[x] Implémenter PitchDetector[x] Benchmark précision (tests unitaires de base)[ ] Dataset test (3 fichiers flûte)Réalisations✓ Fichiers créés/modifiés:[x] src/pitch_detector.py (Implémentation CREPE)[x] tests/test_pitch_detector.py (4 tests unitaires)[x] src/types.py (Définition de PitchFrame)Décisions TechniquesModèle CREPE par défaut: full (pour la production)Modèle CREPE pour tests unitaires: tiny (pour accélérer les tests et éviter le re-téléchargement fréquent)Hop length par défaut: 10 ms (pour un bon compromis résolution/vitesse)Conversion : La sortie de crepe.predict est convertie en List[PitchFrame].Benchmarks (Tests Unitaires de Base)Fichier TestPrécision (Hz)LatenceNotesSinus 440 Hz$< 1.0$ HzN/ALe test test_detect_pitch_accuracy_440hz vérifie que la fréquence moyenne détectée est inférieure à 1.0 Hz de 440 Hz.Problèmes RencontrésErreur KeyError: 10 : Problème d'ordre des arguments dans crepe.predict (step_size passé à la place de model_capacity). Résolution : Utilisation des arguments nommés (model_capacity=..., step_size=...) pour fiabiliser l'appel.Erreur test_save_audio Session 1 : Le test a été corrigé avant de démarrer Session 2 pour permettre l'exécution des tests.Tests ValidésBashpytest tests/test_pitch_detector.py -v
+# Résultats : 4/4 passants (incluant un test d'exactitude et un test de format d'entrée)
+Notes ContinuationProchaine session : Session 3 - Implémenter Note Segmentation.Amélioration possible : Ajouter des tests unitaires pour différents modèles CREPE et différentes fréquences cibles.Tâches en suspens : Création du dataset audio de flûte pour les benchmarks complets.Liens UtilesCommit: [hash]CREPE paper: https://arxiv.org/abs/1802.06182Session 3 : [À COMPLÉTER] - Note SegmentationDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] Algorithme onset/offset detection[ ] Conversion fréquence → MIDI[ ] Filtrage silences[ ] Tests unitairesRéalisations✓ Fichiers créés:[ ] src/note_segmenter.py[ ] tests/test_note_segmenter.pyDécisions TechniquesOnset detection: [méthode]Seuil confidence: X.XXDurée minimale note: XX msProblèmes Rencontrés[Décrire si applicable]Tests ValidésBashpytest tests/test_note_segmenter.py -v
+# Résultats : X/Y passants
+Notes ContinuationProchaine session : Musical Quantization
+
+Session 4 : [À COMPLÉTER] - Musical QuantizationDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] Détection tempo (BPM)[ ] Quantization rythmique[ ] Gestion mesures/temps[ ] Tests unitairesRéalisations✓ Fichiers créés:[ ] src/quantizer.py[ ] tests/test_quantizer.pyDécisions TechniquesAlgorithme tempo: [méthode]Grille quantization: [1/16, 1/8, etc.]Tolérance: X%Problèmes Rencontrés[Décrire si applicable - c'est souvent ici que c'est complexe]Tests ValidésBashpytest tests/test_quantizer.py -v
+# Résultats : X/Y passants
+Notes ContinuationProchaine session : Score Generation
+
+Session 5 : [À COMPLÉTER] - Score GenerationDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] Intégration music21[ ] Export MusicXML[ ] Rendu PDF (MuseScore/Lilypond)[ ] Export MIDIRéalisations✓ Fichiers créés:[ ] src/score_generator.py[ ] tests/test_score_generator.pyDécisions TechniquesRenderer PDF: [MuseScore/Lilypond]Paramètres music21: [clef, time signature, etc.]Problèmes Rencontrés[Installation dépendances externes si nécessaire]Tests ValidésBashpytest tests/test_score_generator.py -v
+# Résultats : X/Y passants
+Notes ContinuationProchaine session : Pipeline & CLI
+
+Session 6 : [À COMPLÉTER] - Pipeline & CLIDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] Orchestration TranscriptionPipeline[ ] Interface CLI (argparse + rich)[ ] Configuration JSON[ ] Documentation utilisateurRéalisations✓ Fichiers créés:[ ] src/transcription_pipeline.py[ ] src/cli.py[ ] config.example.jsonDécisions TechniquesCLI framework: argparse + richConfiguration: JSON file + CLI overridesUtilisation CLIBashpython -m src.cli transcribe input.wav --output ./output --config config.json
+Problèmes Rencontrés[Décrire si applicable]Tests Validés
+
+Bash
+pytest tests/ -v
+
+# Tests intégration basiques
+Notes Continuation
+Prochaine session : Tests E2E & Tuning
+
+Session 7 : [À COMPLÉTER] - Tests E2E & Optimisation
+
+Date: YYYY-MM-DD
+Durée: Xh
+Développeur: [Nom ou IA]
+Objectifs Session[ ] Tests end-to-end complets[ ] Tuning paramètres (seuils, quantization)[ ] Benchmarks qualité/performance[ ] Rapport résultatsRéalisations✓ Fichiers créés:[ ] tests/test_e2e.py[ ] docs/BENCHMARK_RESULTS.md[ ] docs/TUNING_GUIDE.mdBenchmarks FinauxMétriqueCibleRésultatStatutPrécision notes (flûte)>90%XX%✓/✗Erreur rythme<10%XX%✓/✗Temps traitement (30s audio)<10sXXs✓/✗Qualité partition (subjectif)Lisible[Commentaire]✓/✗Paramètres Optimaux TrouvésJSON{
+  "pitch_detector": {
+    "model_size": "medium",
+    "confidence_threshold": 0.85
+  },
+  "note_segmenter": {
+    "min_note_duration": 0.1
+  },
+  "quantizer": {
+    "quantization_grid": "1/16"
+  }
+}
+Problèmes Résiduels[Lister limitations connues]
+Tests Validés
+
+Bash
+pytest tests/test_e2e.py -v --benchmark
+# Résultats : X/Y passants
+Notes Continuation
+Prochaine session : Documentation finaleSession 8 : [À COMPLÉTER] - Documentation & ReleaseDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] README complet avec exemples[ ] Guide contribution[ ] Documentation API (Sphinx/MkDocs)[ ] Package release v0.1.0Réalisations✓ Fichiers créés:[ ] README.md (version finale)[ ] CONTRIBUTING.md[ ] docs/ (si Sphinx/MkDocs)[ ] Tag Git v0.1.0Checklist Release[ ] Tous tests passants[ ] Documentation complète[ ] Exemples fonctionnels[ ] CHANGELOG.md créé[ ] License ajoutée (MIT/Apache/GPL)Contenu README.md[ ] Description projet[ ] Installation rapide[ ] Exemple utilisation CLI[ ] Architecture (lien vers ARCHITECTURE.md)[ ] Screenshots résultats[ ] Limitations connues[ ] Roadmap Phase 2/3[ ] Contribution guidelinesNotes Finales Phase 1Succès: [Points forts]Limitations: [Points faibles identifiés]Recommandations Phase 2: [Améliorations suggérées]Liens UtilesRelease: [tag v0.1.0]PyPI: [si publié]Template Session FutureDate: YYYY-MM-DDDurée: XhDéveloppeur: [Nom ou IA]Objectifs Session[ ] Objectif 1[ ] Objectif 2Réalisations✓ Fichiers créés/modifiés:[ ] Fichier 1[ ] Fichier 2Décisions TechniquesDécision 1Décision 2Problèmes RencontrésProblème 1 : SolutionProblème 2 : WorkaroundTests ValidésBashpytest ...
+Notes Continuation
+Prochaine session : [Description]Dernière mise à jour: 2025-11-09
+---
+
+La Session 2 est maintenant officiellement documentée. 
+Êtes-vous prêt à démarrer la **Session 3 : Note Segmentation** ?

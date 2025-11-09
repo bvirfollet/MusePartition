@@ -264,7 +264,7 @@ class TestAudioProcessor:
             loaded, loaded_sr = sf.read(output_path)
             
             assert loaded_sr == sr
-            np.testing.assert_array_almost_equal(loaded, audio, decimal=4)
+            np.testing.assert_array_almost_equal(loaded, audio, decimal=5)
         
         finally:
             Path(output_path).unlink(missing_ok=True)
