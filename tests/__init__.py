@@ -1,0 +1,3 @@
+"""
+MusePartition - Tests package
+"""

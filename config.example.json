@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MusePartition Configuration",
+  "description": "Configuration pour le pipeline de transcription audio → partition",
+  
+  "audio": {
+    "sample_rate": 22050,
+    "normalization": "peak",
+    "convert_to_mono": true,
+    "comments": {
+      "sample_rate": "Fréquence d'échantillonnage (Hz). 22050 est un bon compromis qualité/performance",
+      "normalization": "Méthode de normalisation: 'peak' (max=1.0) ou 'rms' (niveau RMS cible)",
+      "convert_to_mono": "Convertir automatiquement stéréo → mono"
+    }
+  },
+  
+  "pitch_detector": {
+    "model_size": "medium",
+    "confidence_threshold": 0.85,
+    "hop_length_ms": 10,
+    "viterbi_smoothing": true,
+    "comments": {
+      "model_size": "Taille modèle CREPE: 'tiny'|'small'|'medium'|'large'|'full'. Plus grand = plus précis mais plus lent",
+      "confidence_threshold": "Seuil confiance [0-1]. Valeurs sous ce seuil sont ignorées",
+      "hop_length_ms": "Intervalle entre frames (ms). Plus petit = plus précis mais plus lent",
+      "viterbi_smoothing": "Lissage Viterbi pour réduire vibrato/bruit"
+    }
+  },
+  
+  "note_segmenter": {
+    "min_note_duration": 0.05,
+    "max_frequency_variation": 50,
+    "silence_threshold_db": -40,
+    "onset_threshold": 0.1,
+    "comments": {
+      "min_note_duration": "Durée minimale note (s). Notes plus courtes = artefacts",
+      "max_frequency_variation": "Variation Hz max pour considérer même note",
+      "silence_threshold_db": "Seuil silence en dB. Valeurs en dessous = pause",
+      "onset_threshold": "Seuil détection onset (attaque note)"
+    }
+  },
+  
+  "quantizer": {
+    "bpm": null,
+    "quantization_grid": "1/16",
+    "swing_ratio": 0.0,
+    "tempo_detection_method": "beat_track",
+    "force_time_signature": null,
+    "comments": {
+      "bpm": "Tempo fixe (BPM) ou null pour auto-détection",
+      "quantization_grid": "Grille rythmique: '1/4'|'1/8'|'1/16'|'1/32'. Plus fin = plus précis",
+      "swing_ratio": "Ratio swing [0-1]. 0=straight, 0.5=swing léger, 1=triplet",
+      "tempo_detection_method": "Méthode détection tempo: 'beat_track'|'onset_strength'|'tempogram'",
+      "force_time_signature": "Signature forcée (ex: '3/4') ou null pour 4/4 par défaut"
+    }
+  },
+  
+  "score_generator": {
+    "time_signature": "4/4",
+    "key_signature": "C",
+    "clef": "treble",
+    "instrument": "Flute",
+    "title": null,
+    "composer": null,
+    "pdf_renderer": "musescore",
+    "comments": {
+      "time_signature": "Signature temporelle (ex: '4/4', '3/4', '6/8')",
+      "key_signature": "Tonalité (ex: 'C', 'G', 'Dm', 'F#m')",
+      "clef": "Clef: 'treble'|'bass'|'alto'|'tenor'",
+      "instrument": "Nom instrument pour rendu partition",
+      "title": "Titre partition (null = utilise nom fichier)",
+      "composer": "Compositeur (null = vide)",
+      "pdf_renderer": "Moteur PDF: 'musescore'|'lilypond'"
+    }
+  },
+  
+  "output": {
+    "export_musicxml": true,
+    "export_pdf": true,
+    "export_midi": true,
+    "export_json": false,
+    "keep_intermediate_data": false,
+    "comments": {
+      "export_musicxml": "Exporter MusicXML (.musicxml)",
+      "export_pdf": "Exporter PDF (.pdf)",
+      "export_midi": "Exporter MIDI (.mid)",
+      "export_json": "Exporter données intermédiaires JSON (pitch, notes, etc.)",
+      "keep_intermediate_data": "Conserver fichiers intermédiaires (debug)"
+    }
+  },
+  
+  "advanced": {
+    "use_gpu": true,
+    "num_threads": null,
+    "cache_models": true,
+    "verbose_logging": false,
+    "comments": {
+      "use_gpu": "Utiliser GPU TensorFlow si disponible",
+      "num_threads": "Nombre threads CPU (null = auto)",
+      "cache_models": "Cache modèles CREPE en mémoire (plus rapide, plus RAM)",
+      "verbose_logging": "Logs verbeux pour debug"
+    }
+  },
+  
+  "experimental": {
+    "polyphony_detection": false,
+    "vibrato_compensation": false,
+    "dynamic_quantization": false,
+    "comments": {
+      "polyphony_detection": "⚠️ EXPÉRIMENTAL - Détection multi-notes (Phase 2+)",
+      "vibrato_compensation": "⚠️ EXPÉRIMENTAL - Compensation vibrato agressif",
+      "dynamic_quantization": "⚠️ EXPÉRIMENTAL - Quantization adaptative au contexte"
+    }
+  }
+}
