@@ -75,6 +75,20 @@ class TestMusicalQuantizer:
         assert quantizer.beats_per_bar == 3
         assert quantizer.beat_unit == 4
     
+    def test_init_time_signature_6_8(self):
+        """Test initialisation avec 6/8 (croche = beat)."""
+        quantizer = MusicalQuantizer(time_signature="6/8")
+        
+        assert quantizer.beats_per_bar == 6
+        assert quantizer.beat_unit == 8
+    
+    def test_init_time_signature_2_2(self):
+        """Test initialisation avec 2/2 (blanche = beat)."""
+        quantizer = MusicalQuantizer(time_signature="2/2")
+        
+        assert quantizer.beats_per_bar == 2
+        assert quantizer.beat_unit == 2
+    
     def test_init_invalid_time_signature(self):
         """Test initialisation avec signature invalide."""
         with pytest.raises(ValueError, match="Signature temporelle invalide"):
@@ -90,6 +104,32 @@ class TestMusicalQuantizer:
         """Test initialisation avec grille invalide."""
         with pytest.raises(ValueError, match="Grille invalide"):
             MusicalQuantizer(quantization_grid="1/64")
+    
+    def test_init_triplet_feel(self):
+        """Test initialisation avec feel='triplet'."""
+        quantizer = MusicalQuantizer(quantization_grid="1/12", feel="triplet")
+        
+        assert quantizer.feel == "triplet"
+        assert quantizer.is_triplet is True
+    
+    def test_init_invalid_feel(self):
+        """Test initialisation avec feel invalide."""
+        with pytest.raises(ValueError, match="Feel invalide"):
+            MusicalQuantizer(feel="invalid")
+    
+    def test_init_triplet_grid_12(self):
+        """Test initialisation avec grille 1/12 (triolet de croches)."""
+        quantizer = MusicalQuantizer(quantization_grid="1/12")
+        
+        assert quantizer.grid_value == 12
+        assert quantizer.is_triplet is True
+    
+    def test_init_triplet_grid_24(self):
+        """Test initialisation avec grille 1/24 (triolet de doubles)."""
+        quantizer = MusicalQuantizer(quantization_grid="1/24")
+        
+        assert quantizer.grid_value == 24
+        assert quantizer.is_triplet is True
     
     # --- Tests Conversion Temps ---
     
@@ -147,9 +187,60 @@ class TestMusicalQuantizer:
     def test_quantize_position_grid_1_8(self):
         """Test quantification sur grille 1/8."""
         quantizer = MusicalQuantizer(quantization_grid="1/8")
-        # Grille 1/8 : step = 0.5 beat
+        # Grille 1/8 : step = 4/8 = 0.5 beat
         quantized = quantizer.quantize_position(1.3)
         assert abs(quantized - 1.5) < 0.001
+    
+    def test_quantize_position_6_8_time_signature(self):
+        """Test quantification en 6/8 (croche = beat)."""
+        quantizer = MusicalQuantizer(time_signature="6/8", quantization_grid="1/8")
+        # En 6/8 : beat_unit = 8, grid = 1/8
+        # grid_step = 8/8 = 1.0 beat
+        quantized = quantizer.quantize_position(1.3)
+        assert abs(quantized - 1.0) < 0.001
+    
+    def test_quantize_position_2_2_time_signature(self):
+        """Test quantification en 2/2 (blanche = beat)."""
+        quantizer = MusicalQuantizer(time_signature="2/2", quantization_grid="1/16")
+        # En 2/2 : beat_unit = 2, grid = 1/16
+        # grid_step = 2/16 = 0.125 beat
+        quantized = quantizer.quantize_position(1.0)
+        assert abs(quantized - 1.0) < 0.001
+        
+        quantized = quantizer.quantize_position(1.07)
+        assert abs(quantized - 1.125) < 0.001  # Arrondi à 0.125
+    
+    def test_quantize_position_triplet_grid_1_12(self):
+        """Test quantification avec triolets (grille 1/12)."""
+        quantizer = MusicalQuantizer(quantization_grid="1/12", feel="triplet")
+        # En 4/4 avec 1/12: grid_step = 4/12 = 0.333 beats
+        
+        # Tester arrondi triolet
+        quantized = quantizer.quantize_position(0.0)
+        assert abs(quantized - 0.0) < 0.01
+        
+        quantized = quantizer.quantize_position(0.2)
+        assert abs(quantized - 0.333) < 0.01  # Proche de 1/3
+        
+        quantized = quantizer.quantize_position(0.5)
+        assert abs(quantized - 0.667) < 0.01  # Arrondi à 2/3 (0.5 est plus proche de 0.667)
+        
+        quantized = quantizer.quantize_position(0.7)
+        assert abs(quantized - 0.667) < 0.01  # Proche de 2/3
+        
+        quantized = quantizer.quantize_position(1.0)
+        assert abs(quantized - 1.0) < 0.01
+    
+    def test_quantize_position_triplet_grid_1_24(self):
+        """Test quantification avec triolets fins (grille 1/24)."""
+        quantizer = MusicalQuantizer(quantization_grid="1/24", feel="triplet")
+        # En 4/4 avec 1/24: grid_step = 4/24 = 0.167 beats
+        
+        quantized = quantizer.quantize_position(0.5)
+        assert abs(quantized - 0.5) < 0.01  # 0.5 = 3 * 0.167
+        
+        quantized = quantizer.quantize_position(0.33)
+        assert abs(quantized - 0.333) < 0.01  # 2 * 0.167
     
     # --- Tests Quantification Durée ---
     
@@ -250,6 +341,32 @@ class TestMusicalQuantizer:
         assert abs(quantized[0].beat_position - 0.0) < 0.01
         assert abs(quantized[1].beat_position - 1.0) < 0.01
         assert abs(quantized[2].beat_position - 2.0) < 0.01
+    
+    def test_quantize_notes_triplet_feel(self):
+        """Test quantification avec triolets."""
+        quantizer = MusicalQuantizer(
+            bpm=120.0,
+            quantization_grid="1/12",
+            feel="triplet"
+        )
+        
+        # Créer notes simulant triolets
+        # À 120 BPM: 1 beat = 0.5s
+        # Triolet = 3 notes sur 1 beat = 0.167s chacune
+        notes = [
+            Note(midi_note=60, start_time=0.0, duration=0.16),   # 1er triolet
+            Note(midi_note=62, start_time=0.17, duration=0.16),  # 2ème triolet
+            Note(midi_note=64, start_time=0.34, duration=0.16),  # 3ème triolet
+        ]
+        
+        quantized, bpm = quantizer.quantize_notes(notes, bpm=120.0)
+        
+        # Vérifier quantification sur grille ternaire
+        # grid_step = 4/12 = 0.333 beats
+        assert len(quantized) == 3
+        assert abs(quantized[0].beat_position - 0.0) < 0.05
+        assert abs(quantized[1].beat_position - 0.333) < 0.05  # 1/3 beat
+        assert abs(quantized[2].beat_position - 0.667) < 0.05  # 2/3 beat
     
     # --- Tests Benchmarks ---
     

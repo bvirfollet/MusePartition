@@ -23,6 +23,7 @@ class MusicalQuantizer:
         bpm: Optional[float] = None,
         time_signature: str = "4/4",
         quantization_grid: str = "1/16",
+        feel: str = "straight",
         debug: bool = False
     ):
         """
@@ -33,19 +34,39 @@ class MusicalQuantizer:
             time_signature: Signature temporelle (défaut: "4/4").
                 Formats supportés: "4/4", "3/4", "6/8", "2/4", etc.
             quantization_grid: Grille de quantification (défaut: "1/16").
-                Options: "1/4" (noires), "1/8" (croches), "1/16" (doubles-croches), "1/32".
+                Options: 
+                - Binaire: "1/4", "1/8", "1/16", "1/32"
+                - Ternaire: "1/12", "1/24" (pour triolets)
+            feel: Type de division rythmique (défaut: "straight").
+                Options:
+                - "straight": Division binaire standard (2, 4, 8, 16...)
+                - "triplet": Division ternaire (3, 6, 12, 24...)
+                - "swing": Swing 2:1 (implémentation future)
             debug: Active le traçage debug (défaut: False).
         
+        Note:
+            En mode "triplet", la grille recommandée est "1/12" (triolet de croches)
+            ou "1/24" (triolet de doubles-croches).
+            
+            Exemples:
+            - 4/4 straight avec 1/16: divisions de 0.25 beats (standard)
+            - 4/4 triplet avec 1/12: divisions de 0.333 beats (triolets de croches)
+            - 6/8 straight avec 1/8: divisions de 1.0 beat (croche = beat)
+        
         Example:
-            >>> # Auto-détection tempo
+            >>> # Standard 4/4
             >>> quantizer = MusicalQuantizer(quantization_grid="1/16")
             >>> 
-            >>> # Tempo fixe 120 BPM
-            >>> quantizer = MusicalQuantizer(bpm=120.0, quantization_grid="1/8")
+            >>> # Triolets en 4/4
+            >>> quantizer = MusicalQuantizer(quantization_grid="1/12", feel="triplet")
+            >>> 
+            >>> # 6/8 naturel (déjà ternaire)
+            >>> quantizer = MusicalQuantizer(time_signature="6/8", quantization_grid="1/8")
         """
         self.bpm = bpm
         self.time_signature = time_signature
         self.quantization_grid = quantization_grid
+        self.feel = feel
         self.tracer = DebugTracer(output_dir="output/debug", enabled=debug)
         
         # Parser time signature
@@ -54,13 +75,18 @@ class MusicalQuantizer:
         # Parser quantization grid
         self._parse_quantization_grid()
         
+        # Valider feel
+        self._validate_feel()
+        
         self.tracer.log_step("quantizer_init", {
             "bpm": bpm,
             "time_signature": time_signature,
             "quantization_grid": quantization_grid,
+            "feel": feel,
             "beats_per_bar": self.beats_per_bar,
             "beat_unit": self.beat_unit,
-            "grid_value": self.grid_value
+            "grid_value": self.grid_value,
+            "is_triplet": self.is_triplet
         })
     
     def _parse_time_signature(self) -> None:
@@ -75,16 +101,51 @@ class MusicalQuantizer:
     def _parse_quantization_grid(self) -> None:
         """Parse la grille de quantification (ex: "1/16" → 16ème de note)."""
         valid_grids = {
+            # Grilles binaires (standard)
             "1/4": 4,    # Noires
             "1/8": 8,    # Croches
             "1/16": 16,  # Doubles-croches
-            "1/32": 32   # Triples-croches
+            "1/32": 32,  # Triples-croches
+            # Grilles ternaires (triolets)
+            "1/12": 12,  # Triolet de croches (3 pour 2)
+            "1/24": 24,  # Triolet de doubles-croches (6 pour 4)
         }
         
         if self.quantization_grid not in valid_grids:
-            raise ValueError(f"Grille invalide: {self.quantization_grid}. Options: {list(valid_grids.keys())}")
+            raise ValueError(
+                f"Grille invalide: {self.quantization_grid}. "
+                f"Options binaires: 1/4, 1/8, 1/16, 1/32. "
+                f"Options ternaires: 1/12, 1/24"
+            )
         
         self.grid_value = valid_grids[self.quantization_grid]
+        
+        # Détecter si c'est une grille ternaire
+        self.is_triplet = self.grid_value in [12, 24]
+    
+    def _validate_feel(self) -> None:
+        """Valide le paramètre feel."""
+        valid_feels = ["straight", "triplet", "swing"]
+        
+        if self.feel not in valid_feels:
+            raise ValueError(
+                f"Feel invalide: {self.feel}. Options: {valid_feels}"
+            )
+        
+        # Avertissement si incohérence grille/feel
+        if self.is_triplet and self.feel == "straight":
+            import warnings
+            warnings.warn(
+                f"Grille ternaire {self.quantization_grid} avec feel='straight'. "
+                "Considérez feel='triplet' pour cohérence."
+            )
+        
+        if not self.is_triplet and self.feel == "triplet":
+            import warnings
+            warnings.warn(
+                f"Grille binaire {self.quantization_grid} avec feel='triplet'. "
+                "Considérez grille 1/12 ou 1/24 pour triolets."
+            )
     
     def detect_tempo(self, audio: np.ndarray, sr: int) -> float:
         """
@@ -177,15 +238,43 @@ class MusicalQuantizer:
         Returns:
             Position quantifiée (arrondie au grid_value le plus proche).
         
+        Note:
+            Le calcul du grid_step dépend de beat_unit ET du type de division:
+            
+            **Division binaire (straight):**
+            - En 4/4 (noire=beat), grid 1/16 → step = 4/16 = 0.25 beats
+            - En 6/8 (croche=beat), grid 1/16 → step = 8/16 = 0.5 beats
+            - En 2/2 (blanche=beat), grid 1/16 → step = 2/16 = 0.125 beats
+            
+            **Division ternaire (triplet):**
+            - En 4/4, grid 1/12 (triolet croches) → step = 4/12 = 0.333 beats
+            - En 4/4, grid 1/24 (triolet doubles) → step = 4/24 = 0.167 beats
+            
+            Formule: grid_step = beat_unit / grid_value (en beats)
+        
         Example:
-            >>> quantizer = MusicalQuantizer(quantization_grid="1/16")
-            >>> # Grille 1/16 = divisions de 0.25 beats (en 4/4)
-            >>> quantizer.quantize_position(1.37)
-            >>> # Retourne 1.25 ou 1.5 selon arrondi
+            >>> # 4/4 standard, grid 1/16
+            >>> quantizer = MusicalQuantizer(time_signature="4/4", quantization_grid="1/16")
+            >>> quantizer.quantize_position(1.37)  # → 1.25 ou 1.5
+            >>> 
+            >>> # 4/4 triolets, grid 1/12
+            >>> quantizer = MusicalQuantizer(quantization_grid="1/12", feel="triplet")
+            >>> quantizer.quantize_position(1.20)  # → 1.0 ou 1.333
+            >>> 
+            >>> # 6/8 naturel
+            >>> quantizer = MusicalQuantizer(time_signature="6/8", quantization_grid="1/8")
+            >>> # En 6/8, beat = croche, grid 1/8 → step = 1.0 beat
         """
-        # Calculer la taille d'un step de grille en beats
-        # En 4/4 avec grid 1/16 : 1 beat = 4 x 1/16, donc step = 0.25 beats
-        grid_step = 1.0 / (self.grid_value / 4)
+        # Formule universelle qui gère binaire ET ternaire:
+        # grid_step (en beats) = beat_unit / grid_value
+        #
+        # Exemples:
+        # - 4/4 avec 1/16: step = 4/16 = 0.25 beats
+        # - 4/4 avec 1/12: step = 4/12 = 0.333 beats (triolet)
+        # - 6/8 avec 1/8:  step = 8/8 = 1.0 beat
+        # - 6/8 avec 1/24: step = 8/24 = 0.333 beats (triolet de double)
+        
+        grid_step = self.beat_unit / self.grid_value
         
         # Arrondir à la grille la plus proche
         quantized = round(position_beats / grid_step) * grid_step
@@ -201,7 +290,7 @@ class MusicalQuantizer:
         Returns:
             Durée quantifiée (minimum = 1 grid step).
         """
-        grid_step = 1.0 / (self.grid_value / 4)
+        grid_step = self.beat_unit / self.grid_value
         
         # Arrondir à la grille, minimum = 1 step
         quantized = max(grid_step, round(duration_beats / grid_step) * grid_step)

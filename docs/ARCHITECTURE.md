@@ -124,17 +124,9 @@ class PitchDetector:
 
 # Module 3: note_segmenter.py
 class NoteSegmenter:
-    def __init__(
-        min_note_duration: float = 0.05,
-        reference_frequency: float = 440.0,
-        pitch_tolerance: float = 0.5
-    )
     def frequency_to_midi(frequency: float) -> int
-    def midi_to_frequency(midi_note: int) -> float
     def segment_notes(pitch_data: List[PitchFrame]) -> List[Note]
         # Note = (midi_note: int, start_time: float, duration: float)
-    def get_note_name(midi_note: int) -> str
-    def print_notes_summary(notes: List[Note]) -> None
 
 # Module 4: quantizer.py
 class MusicalQuantizer:
@@ -204,45 +196,43 @@ class TranscriptionPipeline:
 
 #### **SESSION 3 : Module 3 (Note Segmentation)**
 - Algorithme onset/offset detection
-- Conversion fréquence → MIDI avec référence ajustable
-- Groupement frames consécutives avec tolérance pitch
-- Filtrage notes trop courtes
+- Conversion fréquence → MIDI
 - **Livrables** :
-  - `note_segmenter.py` (avec référence_frequency configurable)
-  - `tests/test_note_segmenter.py` (40+ tests)
-  - Intégration DebugTracer
-  - Benchmarks performance
+  - `note_segmenter.py`
+  - `tests/test_note_segmenter.py`
   - Documentation API Module 3
 
 #### **SESSION 4 : Module 4 (Musical Quantization)**
-- Détection tempo (BPM) via librosa
-- Quantization rythmique configurable (1/4, 1/8, 1/16, 1/32)
-- Conversion secondes ↔ beats
-- Alignement notes sur grille rythmique
+- Détection tempo
+- Quantization rythmique configurable
 - **Livrables** :
-  - `quantizer.py` (avec détection tempo auto)
-  - `tests/test_quantizer.py` (35+ tests)
-  - Support signatures temporelles multiples
-  - Benchmarks performance
+  - `quantizer.py`
+  - `tests/test_quantizer.py`
   - Documentation API Module 4
 
 #### **SESSION 5 : Module 5 (Score Generation)**
 - Intégration music21
-- Export multi-formats
-- Configuration MuseScore/Lilypond
+- Export multi-formats (MusicXML, MIDI, PDF)
+- Gestion silences automatique
+- Metadata personnalisables (titre, compositeur)
 - **Livrables** :
-  - `score_generator.py`
-  - `tests/test_score_generator.py`
+  - `score_generator.py` (avec gestion silences)
+  - `tests/test_score_generator.py` (35+ tests)
+  - requirements.txt mis à jour (music21)
+  - INSTALL_GUIDE.md étendu (MuseScore/Lilypond)
   - Documentation API Module 5
 
 #### **SESSION 6 : Pipeline & CLI**
-- Orchestration complète
-- Interface CLI avec rich
-- Configuration JSON
+- Orchestration complète audio → partition
+- Interface CLI avec argparse + rich
+- Configuration JSON complète
+- Gestion erreurs robuste
 - **Livrables** :
-  - `transcription_pipeline.py`
-  - `cli.py`
-  - `config.example.json`
+  - `transcription_pipeline.py` (orchestration complète)
+  - `cli.py` (interface ligne de commande)
+  - `config.example.json` (configuration exemple)
+  - `tests/test_pipeline.py` (tests pipeline)
+  - `tests/test_cli.py` (tests CLI)
   - Documentation utilisateur
 
 #### **SESSION 7 : Tests End-to-End & Optimisation**

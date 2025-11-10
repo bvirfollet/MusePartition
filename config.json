@@ -78,7 +78,7 @@
     "export_musicxml": true,
     "export_pdf": true,
     "export_midi": true,
-    "export_json": false,
+    "export_json": true,
     "keep_intermediate_data": false,
     "comments": {
       "export_musicxml": "Exporter MusicXML (.musicxml)",

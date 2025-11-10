@@ -1,24 +1,56 @@
 """
 MusePartition - Audio to Music Score Transcription
-Main package initialization
 """
 
-__version__ = "0.1.0"
-__author__ = "Bertrand Virfollet"
+from src.types import (
+    PitchFrame,
+    Note,
+    QuantizedNote,
+    TranscriptionResult,
+    AudioLoadError,
+    PitchDetectionError,
+    QuantizationError,
+    ScoreGenerationError,
+)
 
-# Expose main classes at package level
 from src.audio_processor import AudioProcessor
 from src.pitch_detector import PitchDetector
 from src.note_segmenter import NoteSegmenter
 from src.quantizer import MusicalQuantizer
-from src.utils import DebugTracer, IntermediateStorage
+from src.score_generator import ScoreGenerator
+from src.transcription_pipeline import TranscriptionPipeline
+from src.utils import (
+    DebugTracer,
+    IntermediateStorage,
+    format_duration,
+    format_frequency,
+    print_summary_stats,
+)
 
 __all__ = [
+    # Types
+    "PitchFrame",
+    "Note",
+    "QuantizedNote",
+    "TranscriptionResult",
+    # Exceptions
+    "AudioLoadError",
+    "PitchDetectionError",
+    "QuantizationError",
+    "ScoreGenerationError",
+    # Modules
     "AudioProcessor",
     "PitchDetector",
     "NoteSegmenter",
     "MusicalQuantizer",
+    "ScoreGenerator",
+    "TranscriptionPipeline",
+    # Utils
     "DebugTracer",
     "IntermediateStorage",
+    "format_duration",
+    "format_frequency",
+    "print_summary_stats",
 ]
 
+__version__ = "0.6.0"  # Session 6 completed
