@@ -39,7 +39,7 @@ class TestPitchDetector:
     def test_init_default(self):
         """Test l'initialisation par défaut."""
         detector = PitchDetector()
-        assert detector.model_capacity == "full"
+        assert detector.model_capacity == "medium"
         assert detector.step_size == 10
 
     def test_init_custom(self):

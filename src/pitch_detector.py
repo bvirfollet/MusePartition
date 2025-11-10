@@ -13,18 +13,44 @@ class PitchDetector:
     en utilisant l'algorithme CREPE.
     """
 
-    def __init__(self, model_capacity: str = "full", step_size: int = 10, verbose: int = 0):
+    def __init__(
+        self, 
+        model_capacity: str = "medium", 
+        step_size: int = 10, 
+        confidence_threshold: float = 0.5,
+        verbose: int = 0
+    ):
         """
         Initialise le PitchDetector.
 
         Args:
-            model_capacity (str): Capacité du modèle CREPE (tiny, small, medium, large, full).
-                                  "full" est le plus précis mais le plus lent.
-            step_size (int): La taille de l'étape en millisecondes entre chaque détection de pitch.
-            verbose (int): Niveau de verbosité pour CREPE.
+            model_capacity: Capacité du modèle CREPE. Options:
+                - "tiny": Très rapide, moins précis (~10x plus rapide que full)
+                - "small": Rapide, précision correcte
+                - "medium": Équilibré, recommandé pour production (défaut)
+                - "large": Précis, plus lent
+                - "full": Maximum précision, très lent (~10x medium)
+            step_size: Taille de l'étape en millisecondes entre détections (défaut: 10ms).
+                Plus petit = plus précis mais plus lent.
+            confidence_threshold: Seuil de confiance minimum [0, 1] (défaut: 0.5).
+                Les détections avec confidence < seuil sont filtrées.
+                Recommandé: 0.5 (équilibré), 0.8 (stricte), 0.3 (permissive)
+            verbose: Niveau de verbosité CREPE (0=silencieux, 1=info, 2=debug).
+        
+        Note:
+            Le modèle CREPE est chargé lors du premier appel à detect_pitch(),
+            pas lors de l'initialisation. Premier appel peut prendre 10-30s.
+        
+        Example:
+            >>> # Configuration recommandée production
+            >>> detector = PitchDetector(model_capacity="medium", confidence_threshold=0.5)
+            >>> 
+            >>> # Configuration tests rapides
+            >>> detector = PitchDetector(model_capacity="tiny", step_size=20)
         """
         self.model_capacity = model_capacity
         self.step_size = step_size
+        self.confidence_threshold = confidence_threshold
         self.verbose = verbose
         # Note: CREPE charge le modèle au premier appel, pas dans __init__.
 
@@ -33,11 +59,37 @@ class PitchDetector:
         Détecte la fréquence fondamentale (F0) du signal audio.
 
         Args:
-            audio (np.ndarray): Le signal audio (mono, normalisé) sous forme de tableau NumPy.
-            sr (int): Le taux d'échantillonnage de l'audio.
+            audio: Signal audio mono normalisé (1D numpy array).
+                Recommandé: amplitude dans [-1, 1], sample rate 22050 ou 44100 Hz.
+            sr: Sample rate (taux d'échantillonnage) en Hz.
 
         Returns:
-            List[PitchFrame]: Liste de PitchFrame = (time, frequency, confidence).
+            Liste de PitchFrame triée chronologiquement.
+            Seules les détections avec confidence >= confidence_threshold sont incluses.
+            Chaque PitchFrame contient:
+                - time (float): Timestamp en secondes
+                - frequency (float): Fréquence en Hz
+                - confidence (float): Confiance de la détection [0, 1]
+
+        Raises:
+            ValueError: Si l'audio n'est pas mono (ndim != 1).
+
+        Example:
+            >>> from src.audio_processor import AudioProcessor
+            >>> processor = AudioProcessor(target_sr=22050)
+            >>> audio, sr = processor.preprocess("flute.wav")
+            >>> 
+            >>> detector = PitchDetector()
+            >>> pitch_data = detector.detect_pitch(audio, sr)
+            >>> 
+            >>> print(f"Detected {len(pitch_data)} pitch frames")
+            >>> avg_freq = sum(p.frequency for p in pitch_data) / len(pitch_data)
+            >>> print(f"Average frequency: {avg_freq:.2f} Hz")
+        
+        Note:
+            - Premier appel télécharge le modèle CREPE (~10-100MB selon capacité)
+            - Les frames avec confidence < threshold sont automatiquement filtrées
+            - Pour audio silencieux, peut retourner liste vide
         """
         # CREPE s'attend à un tableau NumPy 1D (mono)
         if audio.ndim > 1:
@@ -47,14 +99,22 @@ class PitchDetector:
         time, frequency, confidence, activation = crepe.predict(
             audio,
             sr,
-            model_capacity=self.model_capacity,  # <--- Corrigé : model_capacity est maintenant nommé
-            step_size=self.step_size,  # <--- Corrigé : step_size est maintenant nommé
+            model_capacity=self.model_capacity,
+            step_size=self.step_size,
             verbose=self.verbose
         )
 
-        # 2. Conversion des résultats en liste de PitchFrame
+        # 2. Conversion des résultats en liste de PitchFrame avec filtrage
         pitch_frames = []
         for t, f, c in zip(time, frequency, confidence):
-            pitch_frames.append(PitchFrame(time=t.item(), frequency=f.item(), confidence=c.item()))
+            # Filtrer par seuil de confiance
+            if c >= self.confidence_threshold:
+                pitch_frames.append(
+                    PitchFrame(
+                        time=float(t.item()), 
+                        frequency=float(f.item()), 
+                        confidence=float(c.item())
+                    )
+                )
 
         return pitch_frames

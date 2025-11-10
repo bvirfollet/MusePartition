@@ -124,9 +124,17 @@ class PitchDetector:
 
 # Module 3: note_segmenter.py
 class NoteSegmenter:
+    def __init__(
+        min_note_duration: float = 0.05,
+        reference_frequency: float = 440.0,
+        pitch_tolerance: float = 0.5
+    )
     def frequency_to_midi(frequency: float) -> int
+    def midi_to_frequency(midi_note: int) -> float
     def segment_notes(pitch_data: List[PitchFrame]) -> List[Note]
         # Note = (midi_note: int, start_time: float, duration: float)
+    def get_note_name(midi_note: int) -> str
+    def print_notes_summary(notes: List[Note]) -> None
 
 # Module 4: quantizer.py
 class MusicalQuantizer:
@@ -196,18 +204,26 @@ class TranscriptionPipeline:
 
 #### **SESSION 3 : Module 3 (Note Segmentation)**
 - Algorithme onset/offset detection
-- Conversion fréquence → MIDI
+- Conversion fréquence → MIDI avec référence ajustable
+- Groupement frames consécutives avec tolérance pitch
+- Filtrage notes trop courtes
 - **Livrables** :
-  - `note_segmenter.py`
-  - `tests/test_note_segmenter.py`
+  - `note_segmenter.py` (avec référence_frequency configurable)
+  - `tests/test_note_segmenter.py` (40+ tests)
+  - Intégration DebugTracer
+  - Benchmarks performance
   - Documentation API Module 3
 
 #### **SESSION 4 : Module 4 (Musical Quantization)**
-- Détection tempo
-- Quantization rythmique configurable
+- Détection tempo (BPM) via librosa
+- Quantization rythmique configurable (1/4, 1/8, 1/16, 1/32)
+- Conversion secondes ↔ beats
+- Alignement notes sur grille rythmique
 - **Livrables** :
-  - `quantizer.py`
-  - `tests/test_quantizer.py`
+  - `quantizer.py` (avec détection tempo auto)
+  - `tests/test_quantizer.py` (35+ tests)
+  - Support signatures temporelles multiples
+  - Benchmarks performance
   - Documentation API Module 4
 
 #### **SESSION 5 : Module 5 (Score Generation)**
