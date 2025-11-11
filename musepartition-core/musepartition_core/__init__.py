@@ -13,13 +13,13 @@ from src.types import (
     ScoreGenerationError,
 )
 
-from src.audio_processor import AudioProcessor
-from src.pitch_detector import PitchDetector
-from src.note_segmenter import NoteSegmenter
-from src.quantizer import MusicalQuantizer
-from src.score_generator import ScoreGenerator
-from src.transcription_pipeline import TranscriptionPipeline
-from src.utils import (
+from musepartition_core.audio_processor import AudioProcessor
+from musepartition_core.pitch_detector import PitchDetector
+from musepartition_core.note_segmenter import NoteSegmenter
+from musepartition_core.quantizer import MusicalQuantizer
+from musepartition_core.score_generator import ScoreGenerator
+from musepartition_core.pipeline import TranscriptionPipeline
+from musepartition_core.utils import (
     DebugTracer,
     IntermediateStorage,
     format_duration,

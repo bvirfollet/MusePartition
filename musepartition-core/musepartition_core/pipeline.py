@@ -8,13 +8,13 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import json
 
-from src.types import TranscriptionResult
-from src.audio_processor import AudioProcessor
-from src.pitch_detector import PitchDetector
-from src.note_segmenter import NoteSegmenter
-from src.quantizer import MusicalQuantizer
-from src.score_generator import ScoreGenerator
-from src.utils import DebugTracer, IntermediateStorage
+from musepartition_core.types import TranscriptionResult
+from musepartition_core.audio_processor import AudioProcessor
+from musepartition_core.pitch_detector import PitchDetector
+from musepartition_core.note_segmenter import NoteSegmenter
+from musepartition_core.quantizer import MusicalQuantizer
+from musepartition_core.score_generator import ScoreGenerator
+from musepartition_core.utils import DebugTracer, IntermediateStorage
 
 
 class TranscriptionPipeline:
