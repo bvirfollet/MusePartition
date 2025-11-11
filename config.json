@@ -16,7 +16,7 @@
   
   "pitch_detector": {
     "model_size": "medium",
-    "confidence_threshold": 0.85,
+    "confidence_threshold": 0.6,
     "hop_length_ms": 10,
     "viterbi_smoothing": true,
     "comments": {

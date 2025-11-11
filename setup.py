@@ -40,7 +40,9 @@ setup(
             "mypy>=1.4.0",
             "pytest>=7.4.0",
             "pytest-cov>=4.1.0",
-        ]
+        ],
+        "cpu": ["tensorflow-cpu"],
+        "gpu": ["tensorflow-gpu"]
     },
     entry_points={
         "console_scripts": [
